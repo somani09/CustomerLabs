@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { pageConfig } from "./config";
 import SegmentModal from "@/components/segment/segment-modal";
+import SavedSegmentsList from "@/components/segment/saved-segments-list";
 
 const Home = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -51,9 +52,11 @@ const Home = () => {
 
       <div className="bg-accent-1 mt-1 mb-8 h-0.5 max-w-48 rounded-full sm:my-8" />
 
-      {/* Work Area */}
       <div className="flex w-full flex-1 flex-col gap-6 lg:flex-row">
-        <div className="text-secondary relative flex min-w-[200px] flex-1 items-center justify-center rounded-xl p-12 lg:w-[30%] lg:min-w-[300px]">
+        <div className="text-secondary relative flex min-w-[200px] flex-1 flex-col items-center justify-start gap-6 rounded-xl p-12 lg:w-[30%] lg:min-w-[300px]">
+          {/* if local storage has schemas saved, show them or else show "No Schema found" */}
+          <SavedSegmentsList />
+
           <SegmentModal />
         </div>
       </div>

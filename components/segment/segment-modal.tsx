@@ -57,6 +57,7 @@ export default function SegmentModal() {
   const handleSubmit = async () => {
     const allSelected = schemaRows.every((r) => r.value);
     if (!segmentName.trim() || !allSelected || schemaRows.length === 0) return;
+
     try {
       const res = await fetch("/api/save-segment", {
         method: "POST",
@@ -70,6 +71,25 @@ export default function SegmentModal() {
 
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error("Webhook request failed");
+
+      const newSegment = {
+        id: Date.now().toString(), // unique ID
+        name: segmentName.trim(),
+        schemas: schemaRows.map((r) => r.value),
+        timestamp: new Date().toISOString(),
+      };
+
+      const existingSegments = JSON.parse(
+        localStorage.getItem("savedSegments") || "[]",
+      );
+
+      const updatedSegments = [...existingSegments, newSegment];
+
+      localStorage.setItem("savedSegments", JSON.stringify(updatedSegments));
+      // notify listeners that segments have been updated
+      try {
+        window.dispatchEvent(new Event("segments-updated"));
+      } catch {}
 
       setWebhookResponse(result.response?.slice(0, 200) || "Success");
       setOpen(false);
@@ -86,7 +106,12 @@ export default function SegmentModal() {
   const handleCancel = () => {
     const hasUnsaved =
       segmentName.trim() !== "" || schemaRows.some((r) => r.value !== "");
-    hasUnsaved ? setShowConfirmCloseModal(true) : setOpen(false);
+
+    if (hasUnsaved) {
+      setShowConfirmCloseModal(true);
+    } else {
+      setOpen(false);
+    }
   };
 
   const hasEmptyDropdown = schemaRows.some((r) => r.value === "");
