@@ -10,7 +10,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         // same structure as your earlier preferred version
         "w-full rounded-lg border bg-white/60 px-3 py-2 text-base transition-all outline-none md:text-sm",
         // colors
-        "border-border/30 text-heading placeholder:text-text-muted",
+        "border-border/30 text-heading placeholder:text-accent-secondary-hover",
         // focus and interaction
         "focus:ring-accent/60 focus:border-accent hover:border-accent/40 focus:ring-2",
         // disabled & invalid

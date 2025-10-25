@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import GlassLayout from "@/components/layouts/glass-layout";
 import {
   Dialog,
   DialogContent,
@@ -24,73 +25,66 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SCHEMAS } from "./schema-config";
-import { cn } from "@/lib/utils";
+import { cn, shadowDepthPrimary } from "@/lib/utils";
 
 export default function SegmentModal() {
   const [open, setOpen] = useState(false);
   const [segmentName, setSegmentName] = useState("");
-  const [selectedSchemas, setSelectedSchemas] = useState<
-    { label: string; value: string; trait: string }[]
-  >([]);
-  const [dropdownValue, setDropdownValue] = useState<string>("");
-
+  const [schemaRows, setSchemaRows] = useState<{ value: string }[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
-  // Auto-close success or error modals after 5s
+  // Auto-close success/error after 5s
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (showSuccessModal || showErrorModal) {
       timer = setTimeout(() => {
         setShowSuccessModal(false);
         setShowErrorModal(false);
-      }, 5000);
+      }, 3000);
     }
     return () => clearTimeout(timer);
   }, [showSuccessModal, showErrorModal]);
 
-  const availableSchemas = SCHEMAS.filter(
-    (schema) => !selectedSchemas.some((sel) => sel.value === schema.value),
-  );
-
-  const handleAddSchema = () => {
-    if (!dropdownValue) return;
-    const selected = SCHEMAS.find((s) => s.value === dropdownValue);
-    if (!selected) return;
-    setSelectedSchemas((prev) => [...prev, selected]);
-    setDropdownValue("");
+  const handleAddSchemaRow = () => {
+    setSchemaRows((prev) => [...prev, { value: "" }]);
   };
 
-  const handleSchemaChange = (index: number, newValue: string) => {
-    const newSchema = SCHEMAS.find((s) => s.value === newValue);
-    if (!newSchema) return;
-    setSelectedSchemas((prev) => {
-      const updated = [...prev];
-      updated[index] = newSchema;
-      return updated;
-    });
+  const handleSchemaSelect = (index: number, value: string) => {
+    const updated = [...schemaRows];
+    updated[index].value = value;
+    setSchemaRows(updated);
   };
 
   const handleRemoveSchema = (index: number) => {
-    setSelectedSchemas((prev) => prev.filter((_, i) => i !== index));
+    setSchemaRows((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
+    const allSelected = schemaRows.every((row) => row.value);
+    if (!segmentName.trim() || !allSelected || schemaRows.length === 0) return;
+
     const isMockSuccess = Math.random() > 0.5;
     if (isMockSuccess) {
-      alert("✅ Segment saved successfully!");
       setOpen(false);
       setSegmentName("");
-      setSelectedSchemas([]);
-      setDropdownValue("");
+      setSchemaRows([]);
       setShowSuccessModal(true);
     } else {
-      alert("❌ Error saving segment!");
       setShowErrorModal(true);
     }
   };
 
-  const isValid = segmentName.trim() !== "" && selectedSchemas.length > 0;
+  const hasEmptyDropdown = schemaRows.some((row) => row.value === "");
+  const isValid =
+    segmentName.trim() !== "" && schemaRows.length > 0 && !hasEmptyDropdown;
+
+  const tooltipText =
+    schemaRows.length === 0
+      ? "Add at least one schema to proceed"
+      : hasEmptyDropdown
+        ? "Please select a schema from the drop-down, or remove it"
+        : "";
 
   return (
     <>
@@ -100,40 +94,65 @@ export default function SegmentModal() {
           <Button variant="default">Save Segment</Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Saving Segment</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          className="max-w-lg rounded-2xl border-none bg-transparent p-0"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <GlassLayout
+            className={cn("rounded-2xl", shadowDepthPrimary, "bg-white")}
+            contentClassName="sm:p-8 bg-white/70 p-6 "
+          >
+            <DialogHeader>
+              <DialogTitle className="text-heading text-2xl font-bold">
+                Save Segment
+              </DialogTitle>
+            </DialogHeader>
 
-          {/* Segment Name */}
-          <div className="mt-2">
-            <label className="text-sm font-medium">
-              Enter the Name of the Segment
-            </label>
-            <Input
-              placeholder="Name of the segment"
-              value={segmentName}
-              onChange={(e) => setSegmentName(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+            {/* Segment Name */}
+            <div className="mt-4">
+              <label className="text-text mb-1 block text-sm font-medium">
+                Enter the Name of the Segment
+              </label>
+              <Input
+                placeholder="Name of the segment"
+                value={segmentName}
+                onChange={(e) => setSegmentName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
 
-          {/* Schema Section */}
-          <div className="mt-4">
-            <p className="mb-2 text-sm">
+            {/* Info */}
+            <p className="text-accent-secondary mt-4 text-sm">
               To save your segment, you need to add the schemas to build the
               query.
             </p>
 
-            <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50 p-3">
-              {selectedSchemas.map((schema, index) => (
-                <div key={schema.value} className="flex items-center gap-2">
+            {/* Legend */}
+            <div className="mt-3 flex justify-end gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="text-subheading">User Traits</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-pink-500" />
+                <span className="text-subheading">Group Traits</span>
+              </div>
+            </div>
+
+            {/* Schema List */}
+            <div className="mt-4 space-y-3 rounded-md backdrop-blur-md">
+              {schemaRows.map((row, index) => (
+                <div key={index} className="flex items-center gap-2">
                   <Select
-                    value={schema.value}
-                    onValueChange={(v) => handleSchemaChange(index, v)}
+                    value={row.value}
+                    onValueChange={(value) => handleSchemaSelect(index, value)}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue />
+                      <SelectValue
+                        placeholder="Select a schema"
+                        className="text-muted"
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {SCHEMAS.map((opt) => (
@@ -144,7 +163,6 @@ export default function SegmentModal() {
                                 "h-2 w-2 rounded-full",
                                 opt.trait === "user" && "bg-green-500",
                                 opt.trait === "group" && "bg-pink-500",
-                                !opt.trait && "bg-gray-400",
                               )}
                             />
                             {opt.label}
@@ -153,11 +171,10 @@ export default function SegmentModal() {
                       ))}
                     </SelectContent>
                   </Select>
-
                   <Button
                     variant="ghost"
-                    className="text-sm text-red-500"
                     onClick={() => handleRemoveSchema(index)}
+                    className="text-lg text-red-500"
                   >
                     –
                   </Button>
@@ -165,108 +182,99 @@ export default function SegmentModal() {
               ))}
             </div>
 
-            {/* Add new schema dropdown */}
-            <div className="mt-3 flex items-center gap-3">
-              <Select value={dropdownValue} onValueChange={setDropdownValue}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Add schema to segment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableSchemas.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "h-2 w-2 rounded-full",
-                            opt.trait === "user" && "bg-green-500",
-                            opt.trait === "group" && "bg-pink-500",
-                            !opt.trait && "bg-gray-400",
-                          )}
-                        />
-                        {opt.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="outline"
-                onClick={handleAddSchema}
-                disabled={!dropdownValue}
+            {/* Add New Schema Button */}
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleAddSchemaRow}
+                className="text-accent hover:text-accent-hover cursor-pointer text-sm font-medium"
               >
                 + Add new schema
-              </Button>
+              </button>
             </div>
-          </div>
 
-          {/* Footer */}
-          <div className="mt-6 flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
+            {/* Footer */}
+            <div className="mt-8 flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="default"
-                    onClick={handleSubmit}
-                    disabled={!isValid}
-                  >
-                    Save the Segment
-                  </Button>
-                </TooltipTrigger>
-                {!isValid && (
-                  <TooltipContent>
-                    Enter a segment name and add at least one schema
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="default"
+                      onClick={handleSubmit}
+                      disabled={!isValid}
+                    >
+                      Save the Segment
+                    </Button>
+                  </TooltipTrigger>
+                  {!isValid && tooltipText && (
+                    <TooltipContent>{tooltipText}</TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </GlassLayout>
         </DialogContent>
       </Dialog>
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-sm rounded-2xl text-center">
-          <DialogHeader>
-            <DialogTitle className="text-green-600">
-              ✅ Segment Saved Successfully!
-            </DialogTitle>
-          </DialogHeader>
-          <p className="mt-2 text-sm text-gray-600">
-            Your segment has been saved. This window will close automatically.
-          </p>
-          <Button
-            variant="default"
-            className="mt-4"
-            onClick={() => setShowSuccessModal(false)}
+        <DialogContent className="max-w-sm rounded-2xl border-none bg-transparent p-0">
+          <GlassLayout
+            className={cn(
+              "rounded-2xl bg-white/70 text-center backdrop-blur-lg",
+              shadowDepthPrimary,
+            )}
+            contentClassName="p-6 sm:p-8"
           >
-            Close
-          </Button>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-green-600">
+                ✅ Segment Saved Successfully!
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-subheading mt-2 text-sm">
+              Your segment has been saved. This window will close automatically.
+            </p>
+            <Button
+              variant="default"
+              className="mt-4"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              Close
+            </Button>
+          </GlassLayout>
         </DialogContent>
       </Dialog>
 
       {/* Error Modal */}
       <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-        <DialogContent className="max-w-sm rounded-2xl text-center">
-          <DialogHeader>
-            <DialogTitle className="text-red-600">
-              ❌ Error Saving Segment
-            </DialogTitle>
-          </DialogHeader>
-          <p className="mt-2 text-sm text-gray-600">
-            Something went wrong while saving your segment. Please try again.
-          </p>
-          <Button
-            variant="default"
-            className="mt-4"
-            onClick={() => setShowErrorModal(false)}
+        <DialogContent className="max-w-sm rounded-2xl border-none bg-transparent p-0">
+          <GlassLayout
+            className={cn(
+              "rounded-2xl bg-white/70 text-center backdrop-blur-lg",
+              shadowDepthPrimary,
+            )}
+            contentClassName="p-6 sm:p-8"
           >
-            Close
-          </Button>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-red-600">
+                ❌ Error Saving Segment
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-subheading mt-2 text-sm">
+              Something went wrong while saving your segment. Please try again.
+            </p>
+            <Button
+              variant="default"
+              className="mt-4"
+              onClick={() => setShowErrorModal(false)}
+            >
+              Close
+            </Button>
+          </GlassLayout>
         </DialogContent>
       </Dialog>
     </>

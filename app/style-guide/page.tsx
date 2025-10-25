@@ -12,13 +12,14 @@ export default function StyleGuide() {
     { label: "Heading", class: "bg-heading" },
     { label: "Subheading", class: "bg-subheading" },
     { label: "Text", class: "bg-text" },
-    { label: "Muted", class: "bg-text-muted" },
+    { label: "Muted", class: "bg-muted" },
     { label: "Accent", class: "bg-accent" },
     { label: "Accent Hover", class: "bg-accent-hover" },
     { label: "Accent Secondary", class: "bg-accent-secondary" },
     { label: "Accent Secondary Hover", class: "bg-accent-secondary-hover" },
     { label: "Border", class: "bg-border" },
-    { label: "Surface", class: "bg-surface-alt" },
+    { label: "Surface", class: "bg-surface" },
+    { label: "Surface Alt", class: "bg-surface-alt" },
     { label: "Glass", class: "bg-glass" },
   ];
 
@@ -40,7 +41,7 @@ export default function StyleGuide() {
             Body text – this is your default paragraph styling. It uses the text
             color token and relaxed line height for readability.
           </p>
-          <p className="text-text-muted text-sm leading-normal">
+          <p className="text-muted text-sm leading-normal">
             Muted text – for helper notes, labels, or secondary info.
           </p>
         </div>
@@ -56,7 +57,7 @@ export default function StyleGuide() {
                 className="bg-accent rounded-md"
                 style={{ width: `${px}px`, height: "12px" }}
               ></div>
-              <span className="text-text-muted mt-1">{px}px</span>
+              <span className="text-muted mt-1">{px}px</span>
             </div>
           ))}
         </div>

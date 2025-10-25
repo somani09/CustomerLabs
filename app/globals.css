@@ -91,7 +91,7 @@
   --color-heading: var(--color-midnight-800); /* #061A40 */
   --color-subheading: var(--color-midnight-650); /* #013A63 */
   --color-text: var(--color-midnight-700); /* #012A4A */
-  --color-text-muted: var(--color-midnight-100); /* #B9D6F2 */
+  --color-muted: var(--color-midnight-100); /* #B9D6F2 */
   --color-border: var(--color-midnight-875); /* #002D67 */
   --color-shadow: var(--color-midnight-950); /* #001E45 */
   --color-surface: var(--color-midnight-1000); /* #00132D */
@@ -131,8 +131,6 @@
   --color-input: var(--input);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-primary-foreground: var(--primary-foreground);
   --color-popover-foreground: var(--popover-foreground);
@@ -247,8 +245,7 @@ body {
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -281,8 +278,6 @@ body {
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
