@@ -15,8 +15,8 @@ type SavedSegment = {
 export default function SavedSegmentsList() {
   const [segments, setSegments] = useState<SavedSegment[]>([]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
 
-  // 🔹 Build a schema lookup for quick label/trait resolution
   const schemaLookup = useMemo(() => {
     return SCHEMAS.reduce<Record<string, SchemaOption>>((acc, s) => {
       acc[s.value] = s;
@@ -40,6 +40,12 @@ export default function SavedSegmentsList() {
     localStorage.setItem("savedSegments", JSON.stringify(updated));
   };
 
+  const deleteAllSegments = () => {
+    setSegments([]);
+    localStorage.removeItem("savedSegments");
+    setConfirmDeleteAll(false);
+  };
+
   useEffect(() => {
     loadSegments();
 
@@ -50,7 +56,6 @@ export default function SavedSegmentsList() {
     };
   }, []);
 
-  // 🔹 Sort by newest first
   const sorted = [...segments].sort(
     (a, b) =>
       new Date(b.timestamp || 0).getTime() -
@@ -76,7 +81,7 @@ export default function SavedSegmentsList() {
           <li
             key={seg.id}
             className={cn(
-              "relative overflow-hidden rounded-2xl border border-gray-200 bg-white/60 p-5 backdrop-blur-md transition-all duration-300 hover:shadow-xl",
+              "relative overflow-hidden rounded-2xl border border-gray-200 bg-white/60 p-5 backdrop-blur-md transition-all duration-300 hover:shadow-lg",
               shadowDepthSoft,
             )}
           >
@@ -137,7 +142,7 @@ export default function SavedSegmentsList() {
                     <span
                       key={val}
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium",
+                        "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium shadow-sm",
                         meta?.trait === "user"
                           ? "border-green-200 bg-green-50/70 text-green-700"
                           : meta?.trait === "group"
@@ -164,6 +169,47 @@ export default function SavedSegmentsList() {
           </li>
         ))}
       </ul>
+
+      {/* Footer actions */}
+      <div className="mt-6 flex flex-col items-center justify-between gap-3 sm:flex-row">
+        {/* Info text */}
+        <p className="text-muted text-xs italic">
+          For demonstration purposes, your segments are temporarily stored in
+          your browser’s local storage.
+        </p>
+
+        {/* Delete All button (only if more than 1) */}
+        {segments.length > 1 &&
+          (confirmDeleteAll ? (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={deleteAllSegments}
+                className="h-7 px-2 text-xs"
+              >
+                Confirm Delete All
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setConfirmDeleteAll(false)}
+                className="h-7 px-2 text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setConfirmDeleteAll(true)}
+              className="h-7 px-2 text-xs text-red-500 hover:text-red-600"
+            >
+              Delete All Segments
+            </Button>
+          ))}
+      </div>
     </div>
   );
 }
