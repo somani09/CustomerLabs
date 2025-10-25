@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+@theme inline {
+  --breakpoint-xs: 480px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Twilight Palette (Blues → Purples) */
+  --color-twilight-blue-300: #76a7f4;
+  --color-twilight-blue-400: #6b8ce6;
+  --color-twilight-blue-500: #6071d7;
+  --color-twilight-blue-violet-400: #8671e1;
+  --color-twilight-violet-500: #ab71eb;
+  --color-twilight-violet-400: #b188ef;
+  --color-twilight-violet-300: #b69ff2;
+  --color-twilight-lavender-300: #bcb6f6;
+  --color-twilight-lavender-200: #c1cdf9;
+
+  /* Mint Palette (Mints → Sky → Periwinkle) */
+  --color-mint-mint-100: #84ffc9;
+  --color-mint-teal-100: #8af2d2;
+  --color-mint-aqua-100: #91e5db;
+  --color-mint-sky-100: #97d9e4;
+  --color-mint-sky-200: #9dcced;
+  --color-mint-blue-200: #a4bff6;
+  --color-mint-periwinkle-200: #aab2ff;
+
+  /* Pastel Palette (Blue & Pink) */
+  --color-pastel-blue-100: #c9def4;
+  --color-pastel-blue-200: #d0dbef;
+  --color-pastel-blue-300: #d8d8e9;
+  --color-pastel-blue-400: #dfd5e4;
+  --color-pastel-pink-100: #e6d2df;
+  --color-pastel-pink-200: #eecfd9;
+  --color-pastel-pink-300: #f5ccd4;
+
+  /* Deepsea Palette (Blue-Green Oceanic Tones) */
+  --color-deepsea-100: #16697a;
+  --color-deepsea-150: #156170;
+  --color-deepsea-200: #135967;
+  --color-deepsea-250: #11525f;
+  --color-deepsea-300: #104a56;
+  --color-deepsea-350: #0e434e;
+  --color-deepsea-400: #0d3c45;
+  --color-deepsea-450: #0b343c;
+  --color-deepsea-500: #092d34;
+  --color-deepsea-550: #08252b;
+  --color-deepsea-600: #00607a;
+  --color-deepsea-650: #005066;
+  --color-deepsea-700: #004052;
+  --color-deepsea-750: #00303d;
+  --color-deepsea-800: #002029;
+
+  /* Skyline Palette */
+  --color-skyline-100: #dceef3;
+  --color-skyline-200: #c2e2ea;
+  --color-skyline-300: #a7d5e1;
+  --color-skyline-400: #8dc8d8;
+  --color-skyline-500: #72bbce;
+  --color-skyline-600: #a9d6e5;
+  --color-skyline-700: #89c2d9;
+  --color-skyline-800: #61a5c2;
+  --color-skyline-850: #468faf;
+  --color-skyline-900: #2c7da0;
+
+  /* Midnight Palette */
+  --color-midnight-100: #b9d6f2;
+  --color-midnight-200: #006daa;
+  --color-midnight-300: #0353a4;
+  --color-midnight-400: #2a6f97;
+  --color-midnight-500: #014f86;
+  --color-midnight-600: #01497c;
+  --color-midnight-650: #013a63;
+  --color-midnight-700: #012a4a;
+  --color-midnight-750: #003559;
+  --color-midnight-800: #061a40;
+  --color-midnight-850: #00377e;
+  --color-midnight-875: #002d67;
+  --color-midnight-900: #002657;
+  --color-midnight-950: #001e45;
+  --color-midnight-975: #00193b;
+  --color-midnight-1000: #00132d;
+
+  /* === Semantic Color Tokens === */
+
+  --color-heading: var(--color-midnight-800); /* #061A40 */
+  --color-subheading: var(--color-midnight-650); /* #013A63 */
+  --color-text: var(--color-midnight-700); /* #012A4A */
+  --color-text-muted: var(--color-midnight-100); /* #B9D6F2 */
+  --color-border: var(--color-midnight-875); /* #002D67 */
+  --color-shadow: var(--color-midnight-950); /* #001E45 */
+  --color-surface: var(--color-midnight-1000); /* #00132D */
+  --color-surface-alt: var(--color-skyline-100); /* #DCEEF3 */
+  --color-glass: var(--color-twilight-blue-300); /* #76a7f4 */
+  --color-accent: var(--color-deepsea-600); /* #00607A */
+  --color-accent-hover: var(--color-deepsea-650); /* #005066 */
+  --color-disabled: grey;
+
+  --color-primary: #13315c;
+  --color-secondary: #084b83;
+
+  --color-accent-1: #71a5de;
+  --color-accent-2: #83b0e1;
+
+  --color-success: #52b788;
+  --color-caution: #ffd500;
+
+  --color-text: #102e4a;
+  --color-glass: #e1ecf7;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar {
+  overflow: scroll !important; /* Ensures both scrollbars are always visible */
+}
+
+/* WebKit Browsers (Chrome, Safari, Edge) */
+.scrollbar::-webkit-scrollbar {
+  width: 0px; /* Vertical scrollbar width */
+  height: 8px; /* Keeps horizontal scrollbar height default */
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #13315c; /* Scrollbar color */
+  border-radius: 10px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Keeps the background invisible */
+}
+
+.v-scrollbar {
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+}
+
+.v-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 0px;
+}
+
+.v-scrollbar::-webkit-scrollbar-thumb {
+  background: #13315c;
+  border-radius: 10px;
+}
+
+.v-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.v-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.v-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+@keyframes fadeOutShrink {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes fadeInSidebar {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+.animate-fade-out-shrink {
+  animation: fadeOutShrink 0.3s ease-in-out forwards;
+}
+
+.animate-fade-in-sidebar {
+  animation: fadeInSidebar 0.4s ease-out forwards;
+}
