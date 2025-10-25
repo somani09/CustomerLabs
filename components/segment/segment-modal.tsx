@@ -88,7 +88,6 @@ export default function SegmentModal() {
         result.response?.slice(0, 200) || "Success (no message returned)",
       );
 
-      // ✅ Success: reset UI
       setOpen(false);
       setSegmentName("");
       setSchemaRows([]);
@@ -121,6 +120,15 @@ export default function SegmentModal() {
       : hasEmptyDropdown
         ? "Please select a schema from the drop-down, or remove it"
         : "";
+
+  const selectedSchemas = schemaRows.filter((row) => row.value);
+  const unselectedSchemas = schemaRows.filter((row) => !row.value);
+
+  const allSchemasSelected =
+    schemaRows.length >= SCHEMAS.length ||
+    SCHEMAS.every((schema) =>
+      schemaRows.some((row) => row.value === schema.value),
+    );
 
   return (
     <>
@@ -176,56 +184,155 @@ export default function SegmentModal() {
             </div>
 
             {/* Schema List */}
-            <div className="mt-4 space-y-3 rounded-md backdrop-blur-md">
-              {schemaRows.map((row, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Select
-                    value={row.value}
-                    onValueChange={(value) => handleSchemaSelect(index, value)}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue
-                        placeholder="Select a schema"
-                        className="text-muted"
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SCHEMAS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "h-2 w-2 rounded-full",
-                                opt.trait === "user" && "bg-green-500",
-                                opt.trait === "group" && "bg-pink-500",
-                              )}
-                            />
-                            {opt.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleRemoveSchema(index)}
-                    className="border border-red-500 py-1 text-lg text-red-500 hover:border-red-600 hover:text-red-600"
-                  >
-                    –
-                  </Button>
+            <div className="mt-4 flex flex-col gap-4">
+              {selectedSchemas.length > 0 && (
+                <div className="rounded-xl bg-blue-50/60 px-3 py-4 shadow-inner shadow-blue-100 backdrop-blur-md transition-all duration-300">
+                  <div className="flex flex-col gap-3">
+                    {selectedSchemas.map((row) => {
+                      const originalIndex = schemaRows.findIndex(
+                        (r) => r.value === row.value,
+                      );
+                      const selectedValues = schemaRows
+                        .map((r) => r.value)
+                        .filter(Boolean);
+                      const availableOptions = SCHEMAS.filter(
+                        (opt) =>
+                          !selectedValues.includes(opt.value) ||
+                          opt.value === row.value,
+                      );
+
+                      return (
+                        <div
+                          key={originalIndex}
+                          className="flex items-center gap-2 rounded-md p-1.5 transition-all duration-300"
+                        >
+                          <Select
+                            value={row.value}
+                            onValueChange={(value) =>
+                              handleSchemaSelect(originalIndex, value)
+                            }
+                          >
+                            <SelectTrigger className="flex-1 border-blue-400 bg-blue-100/40 focus:ring-blue-400">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={cn(
+                                        "h-2 w-2 rounded-full",
+                                        opt.trait === "user" && "bg-green-500",
+                                        opt.trait === "group" && "bg-pink-500",
+                                      )}
+                                    />
+                                    {opt.label}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleRemoveSchema(originalIndex)}
+                            className="border border-red-500 py-1 text-lg text-red-500 hover:border-red-600 hover:text-red-600"
+                          >
+                            –
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {unselectedSchemas.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  {unselectedSchemas.map((row) => {
+                    const originalIndex = schemaRows.findIndex(
+                      (r) => r === row,
+                    );
+                    const selectedValues = schemaRows
+                      .map((r) => r.value)
+                      .filter(Boolean);
+                    const availableOptions = SCHEMAS.filter(
+                      (opt) =>
+                        !selectedValues.includes(opt.value) ||
+                        opt.value === row.value,
+                    );
+
+                    return (
+                      <div
+                        key={originalIndex}
+                        className="flex items-center gap-2 rounded-md p-1.5 transition-all duration-300"
+                      >
+                        <Select
+                          value={row.value}
+                          onValueChange={(value) =>
+                            handleSchemaSelect(originalIndex, value)
+                          }
+                        >
+                          <SelectTrigger className="flex-1 border-gray-300 bg-transparent">
+                            <SelectValue placeholder="Select a schema" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={cn(
+                                      "h-2 w-2 rounded-full",
+                                      opt.trait === "user" && "bg-green-500",
+                                      opt.trait === "group" && "bg-pink-500",
+                                    )}
+                                  />
+                                  {opt.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleRemoveSchema(originalIndex)}
+                          className="border border-red-500 py-1 text-lg text-red-500 hover:border-red-600 hover:text-red-600"
+                        >
+                          –
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Add New Schema Button */}
             <div className="mt-3">
-              <button
-                type="button"
-                onClick={handleAddSchemaRow}
-                className="text-accent hover:text-accent-hover cursor-pointer text-sm font-medium"
-              >
-                + Add new schema
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="inline-block">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleAddSchemaRow}
+                        disabled={allSchemasSelected}
+                        className={cn(
+                          "text-accent hover:text-accent-hover cursor-pointer text-sm font-medium",
+                          allSchemasSelected && "cursor-not-allowed opacity-60",
+                        )}
+                      >
+                        + Add new schema
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  {allSchemasSelected && (
+                    <TooltipContent side="top">
+                      Maximum number of dropdowns reached.
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             {/* Footer */}
