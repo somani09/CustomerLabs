@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ReactNode } from "react";
-import { cn } from "@/app/utils";
+import { cn } from "@/lib/utils";
 import bgLine from "@/components/icons/bg-line.svg";
 
 interface GlassLayoutProps {

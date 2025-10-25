@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "./utils";
+import { cn } from "@/lib/utils";
 import { pageConfig } from "./config";
 import SegmentModal from "@/components/segment/segment-modal";
 

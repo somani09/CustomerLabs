@@ -97,8 +97,10 @@
   --color-surface: var(--color-midnight-1000); /* #00132D */
   --color-surface-alt: var(--color-skyline-100); /* #DCEEF3 */
   --color-glass: var(--color-twilight-blue-300); /* #76a7f4 */
-  --color-accent: var(--color-deepsea-600); /* #00607A */
-  --color-accent-hover: var(--color-deepsea-650); /* #005066 */
+  --color-accent: var(--color-twilight-blue-violet-400); /* Primary CTA */
+  --color-accent-hover: var(--color-twilight-violet-500);
+  --color-accent-secondary: var(--color-mint-sky-200); /* Subtle accent */
+  --color-accent-secondary-hover: var(--color-mint-blue-200);
   --color-disabled: grey;
 
   --color-primary: #13315c;

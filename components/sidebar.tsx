@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn, shadowDepthPrimary } from "@/app/utils";
+import { cn, shadowDepthPrimary } from "@/lib/utils";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 
 const navItems = [
@@ -24,12 +24,12 @@ const navLinkBaseClasses =
   "flex h-16 items-center rounded-2xl border px-8 py-2 text-lg transition";
 
 const activeNavLinkClasses = cn(
-  "bg-accent-2 border-secondary text-primary font-bold backdrop-blur-[6px] hover:border-accent-2 ",
+  "bg-accent-2 border-subheading text-heading font-bold backdrop-blur-[6px] hover:border-accent-2 ",
   shadowDepthPrimary,
 );
 
 const inactiveNavLinkClasses =
-  "bg-glass text-secondary border-primary hover:text-primary  hover:font-bold";
+  "bg-glass text-subheading border-heading hover:text-heading  hover:font-bold";
 
 const Sidebar: React.FC = () => {
   const pathname = usePathname();
@@ -57,7 +57,7 @@ const Sidebar: React.FC = () => {
         onClick={() => setSidebarOpen(true)}
         className={cn(
           "z-50 flex h-16 w-16 items-center justify-center rounded-full",
-          "bg-glass/20 border-primary/10 border-2 backdrop-blur-[6px]",
+          "bg-glass/20 border-heading/10 border-2 backdrop-blur-[6px]",
           shadowDepthPrimary,
           "translate-z-0 transition-opacity duration-300 ease-in-out will-change-[opacity]",
           "fixed bottom-2 left-2 sm:top-[161px] sm:bottom-auto sm:left-[34px]",
@@ -65,9 +65,9 @@ const Sidebar: React.FC = () => {
         )}
       >
         <div className="space-y-1">
-          <span className="bg-primary block h-0.5 w-6"></span>
-          <span className="bg-primary block h-0.5 w-6"></span>
-          <span className="bg-primary block h-0.5 w-6"></span>
+          <span className="bg-heading block h-0.5 w-6"></span>
+          <span className="bg-heading block h-0.5 w-6"></span>
+          <span className="bg-heading block h-0.5 w-6"></span>
         </div>
       </button>
 
@@ -84,12 +84,12 @@ const Sidebar: React.FC = () => {
       >
         <IoIosCloseCircleOutline
           onClick={() => setSidebarOpen(false)}
-          className="text-primary absolute top-14 right-4 h-6 w-6 cursor-pointer"
+          className="text-heading absolute top-14 right-4 h-6 w-6 cursor-pointer"
         />
 
         <div>
           <div className="flex items-center space-x-4">
-            <div className="bg-secondary border-primary relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2">
+            <div className="bg-subheading border-heading relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2">
               <img
                 src="/avatar.jpeg"
                 alt="Avatar"
@@ -97,8 +97,8 @@ const Sidebar: React.FC = () => {
               />
             </div>{" "}
             <div>
-              <p className="text-primary text-2xl font-bold">Vaibhav Somani</p>
-              <p className="text-secondary text-lg font-semibold">
+              <p className="text-heading text-2xl font-bold">Vaibhav Somani</p>
+              <p className="text-subheading text-lg font-semibold">
                 Software Developer
               </p>
             </div>

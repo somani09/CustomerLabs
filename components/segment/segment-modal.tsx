@@ -24,7 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SCHEMAS } from "./schema-config";
-import { cn } from "@/app/utils";
+import { cn } from "@/lib/utils";
 
 export default function SegmentModal() {
   const [open, setOpen] = useState(false);
@@ -75,13 +75,8 @@ export default function SegmentModal() {
     setSelectedSchemas((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --------------------------
-  // MOCK HANDLER — Replace later
-  // --------------------------
   const handleSubmit = async () => {
-    // const isMockSuccess = Math.random() > 0.5; // flip between success & error for now
-    const isMockSuccess = false; // flip between success & error for now
-
+    const isMockSuccess = Math.random() > 0.5;
     if (isMockSuccess) {
       alert("✅ Segment saved successfully!");
       setOpen(false);
