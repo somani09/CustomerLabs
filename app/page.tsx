@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "./utils";
 import { pageConfig } from "./config";
+import SegmentModal from "@/components/segment/segment-modal";
 
 const Home = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -52,8 +53,8 @@ const Home = () => {
 
       {/* Work Area */}
       <div className="flex w-full flex-1 flex-col gap-6 lg:flex-row">
-        <div className="border-primary/30 text-secondary relative flex min-w-[200px] flex-1 items-center justify-center rounded-xl border border-dashed p-12 lg:w-[30%] lg:min-w-[300px]">
-          Work Area
+        <div className="text-secondary relative flex min-w-[200px] flex-1 items-center justify-center rounded-xl p-12 lg:w-[30%] lg:min-w-[300px]">
+          <SegmentModal />
         </div>
       </div>
     </div>
