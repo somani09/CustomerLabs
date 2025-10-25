@@ -33,15 +33,16 @@ export default function SegmentModal() {
   const [schemaRows, setSchemaRows] = useState<{ value: string }[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showConfirmCloseModal, setShowConfirmCloseModal] = useState(false);
+  const [webhookResponse, setWebhookResponse] = useState<string | null>(null);
 
-  // Auto-close success/error after 5s
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (showSuccessModal || showErrorModal) {
       timer = setTimeout(() => {
         setShowSuccessModal(false);
         setShowErrorModal(false);
-      }, 3000);
+      }, 5000);
     }
     return () => clearTimeout(timer);
   }, [showSuccessModal, showErrorModal]);
@@ -64,14 +65,48 @@ export default function SegmentModal() {
     const allSelected = schemaRows.every((row) => row.value);
     if (!segmentName.trim() || !allSelected || schemaRows.length === 0) return;
 
-    const isMockSuccess = Math.random() > 0.5;
-    if (isMockSuccess) {
+    try {
+      const response = await fetch("/api/save-segment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          segmentName,
+          schemas: schemaRows.map((row) => row.value),
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error("Webhook request failed");
+      }
+
+      setWebhookResponse(
+        result.response?.slice(0, 200) || "Success (no message returned)",
+      );
+
+      // ✅ Success: reset UI
       setOpen(false);
       setSegmentName("");
       setSchemaRows([]);
       setShowSuccessModal(true);
-    } else {
+    } catch (error) {
+      console.error("Error posting to webhook:", error);
+      setWebhookResponse(null);
       setShowErrorModal(true);
+    }
+  };
+
+  const handleCancel = () => {
+    const hasUnsavedData =
+      segmentName.trim() !== "" || schemaRows.some((row) => row.value !== "");
+    if (hasUnsavedData) {
+      setShowConfirmCloseModal(true);
+    } else {
+      setOpen(false);
     }
   };
 
@@ -79,29 +114,30 @@ export default function SegmentModal() {
   const isValid =
     segmentName.trim() !== "" && schemaRows.length > 0 && !hasEmptyDropdown;
 
-  const tooltipText =
-    schemaRows.length === 0
-      ? "Add at least one schema to proceed"
+  const tooltipText = !segmentName.trim()
+    ? "Please add a name for the segment"
+    : schemaRows.length === 0
+      ? "Please add at least one schema to proceed"
       : hasEmptyDropdown
         ? "Please select a schema from the drop-down, or remove it"
         : "";
 
   return (
     <>
-      {/* Primary Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="default">Save Segment</Button>
         </DialogTrigger>
 
         <DialogContent
+          showCloseButton={false}
           className="max-w-lg rounded-2xl border-none bg-transparent p-0"
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <GlassLayout
             className={cn("rounded-2xl", shadowDepthPrimary, "bg-white")}
-            contentClassName="sm:p-8 bg-white/70 p-6 "
+            contentClassName="sm:p-8 bg-white/70 p-6"
           >
             <DialogHeader>
               <DialogTitle className="text-heading text-2xl font-bold">
@@ -122,7 +158,6 @@ export default function SegmentModal() {
               />
             </div>
 
-            {/* Info */}
             <p className="text-accent-secondary mt-4 text-sm">
               To save your segment, you need to add the schemas to build the
               query.
@@ -174,7 +209,7 @@ export default function SegmentModal() {
                   <Button
                     variant="ghost"
                     onClick={() => handleRemoveSchema(index)}
-                    className="text-lg text-red-500"
+                    className="border border-red-500 py-1 text-lg text-red-500 hover:border-red-600 hover:text-red-600"
                   >
                     –
                   </Button>
@@ -195,23 +230,28 @@ export default function SegmentModal() {
 
             {/* Footer */}
             <div className="mt-8 flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => setOpen(false)}>
+              <Button variant="secondary" onClick={handleCancel}>
                 Cancel
               </Button>
 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="default"
-                      onClick={handleSubmit}
-                      disabled={!isValid}
-                    >
-                      Save the Segment
-                    </Button>
+                    <div className="inline-block">
+                      <Button
+                        variant="default"
+                        onClick={handleSubmit}
+                        disabled={!isValid}
+                        className={cn(
+                          !isValid && "cursor-not-allowed opacity-60",
+                        )}
+                      >
+                        Save the Segment
+                      </Button>
+                    </div>
                   </TooltipTrigger>
                   {!isValid && tooltipText && (
-                    <TooltipContent>{tooltipText}</TooltipContent>
+                    <TooltipContent side="top">{tooltipText}</TooltipContent>
                   )}
                 </Tooltip>
               </TooltipProvider>
@@ -236,8 +276,19 @@ export default function SegmentModal() {
               </DialogTitle>
             </DialogHeader>
             <p className="text-subheading mt-2 text-sm">
-              Your segment has been saved. This window will close automatically.
+              Your segment has been saved successfully. This window will close
+              automatically.
             </p>
+
+            {webhookResponse && (
+              <div className="mt-3 rounded-md bg-gray-100 p-3 text-left text-xs text-gray-700">
+                <strong>Webhook Response:</strong>
+                <pre className="mt-1 break-words whitespace-pre-wrap">
+                  {webhookResponse}
+                </pre>
+              </div>
+            )}
+
             <Button
               variant="default"
               className="mt-4"
@@ -274,6 +325,52 @@ export default function SegmentModal() {
             >
               Close
             </Button>
+          </GlassLayout>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Close Modal */}
+      <Dialog
+        open={showConfirmCloseModal}
+        onOpenChange={setShowConfirmCloseModal}
+      >
+        <DialogContent className="max-w-sm rounded-2xl border-none bg-transparent p-0">
+          <GlassLayout
+            className={cn(
+              "rounded-2xl bg-white/70 text-center backdrop-blur-lg",
+              shadowDepthPrimary,
+            )}
+            contentClassName="p-6 sm:p-8"
+          >
+            <DialogHeader>
+              <DialogTitle className="text-heading text-lg font-semibold">
+                Discard changes?
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-subheading mt-2 text-sm">
+              Closing this modal will clear your entered name and selected
+              schemas.
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setShowConfirmCloseModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setSegmentName("");
+                  setSchemaRows([]);
+                  setShowConfirmCloseModal(false);
+                  setOpen(false);
+                }}
+              >
+                Discard
+              </Button>
+            </div>
           </GlassLayout>
         </DialogContent>
       </Dialog>
