@@ -12,7 +12,11 @@ type SavedSegment = {
   timestamp?: string;
 };
 
-export default function SavedSegmentsList() {
+type SavedSegmentsListProps = {
+  onEdit?: (id: string) => void;
+};
+
+export default function SavedSegmentsList({ onEdit }: SavedSegmentsListProps) {
   const [segments, setSegments] = useState<SavedSegment[]>([]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
@@ -98,39 +102,54 @@ export default function SavedSegmentsList() {
                 )}
               </div>
 
-              {/* Delete button + confirm state */}
-              {confirmDeleteId === seg.id ? (
-                <div className="flex items-center gap-2">
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                {/* Edit button */}
+                {onEdit && (
                   <Button
+                    variant="ghost"
                     size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      deleteSegment(seg.id);
-                      setConfirmDeleteId(null);
-                    }}
-                    className="h-7 px-2 text-xs"
+                    onClick={() => onEdit(seg.id)}
+                    className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700"
                   >
-                    Confirm
+                    Edit
                   </Button>
+                )}
+
+                {/* Delete button + confirm state */}
+                {confirmDeleteId === seg.id ? (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => {
+                        deleteSegment(seg.id);
+                        setConfirmDeleteId(null);
+                      }}
+                      className="h-7 px-2 text-xs"
+                    >
+                      Confirm
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="h-7 px-2 text-xs"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
                   <Button
+                    variant="ghost"
                     size="sm"
-                    variant="secondary"
-                    onClick={() => setConfirmDeleteId(null)}
-                    className="h-7 px-2 text-xs"
+                    onClick={() => setConfirmDeleteId(seg.id)}
+                    className="h-7 px-2 text-xs text-red-500 hover:text-red-600"
                   >
-                    Cancel
+                    Delete
                   </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setConfirmDeleteId(seg.id)}
-                  className="h-7 px-2 text-xs text-red-500 hover:text-red-600"
-                >
-                  Delete
-                </Button>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Schema Pills */}

@@ -8,6 +8,20 @@ import SavedSegmentsList from "@/components/segment/saved-segments-list";
 
 const Home = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editSegmentId, setEditSegmentId] = useState<string | null>(null);
+
+  const handleEdit = (id: string) => {
+    setEditSegmentId(id);
+    setModalOpen(true);
+  };
+
+  const handleModalClose = (open: boolean) => {
+    setModalOpen(open);
+    if (!open) {
+      setEditSegmentId(null);
+    }
+  };
 
   return (
     <div className="flex h-max min-h-screen flex-col px-8 pt-12 sm:pl-32 md:pr-32">
@@ -55,9 +69,13 @@ const Home = () => {
       <div className="flex w-full flex-1 flex-col gap-6 lg:flex-row">
         <div className="text-secondary relative flex min-w-[200px] flex-1 flex-col items-center justify-start gap-6 rounded-xl p-12 lg:w-[30%] lg:min-w-[300px]">
           {/* if local storage has schemas saved, show them or else show "No Schema found" */}
-          <SavedSegmentsList />
+          <SavedSegmentsList onEdit={handleEdit} />
 
-          <SegmentModal />
+          <SegmentModal
+            open={modalOpen}
+            onOpenChange={handleModalClose}
+            editSegmentId={editSegmentId}
+          />
         </div>
       </div>
     </div>

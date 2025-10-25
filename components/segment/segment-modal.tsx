@@ -25,14 +25,62 @@ import Legend from "./legend";
 import AddSchemaButton from "./add-schema-button";
 import StatusModal from "./status-modal";
 
-export default function SegmentModal() {
-  const [open, setOpen] = useState(false);
+type SavedSegment = {
+  id: string;
+  name: string;
+  schemas: string[];
+  timestamp?: string;
+};
+
+type SegmentModalProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editSegmentId?: string | null;
+};
+
+export default function SegmentModal({
+  open,
+  onOpenChange,
+  editSegmentId,
+}: SegmentModalProps) {
   const [segmentName, setSegmentName] = useState("");
   const [schemaRows, setSchemaRows] = useState<{ value: string }[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showConfirmCloseModal, setShowConfirmCloseModal] = useState(false);
   const [webhookResponse, setWebhookResponse] = useState<string | null>(null);
+
+  // Load segment data when editing
+  useEffect(() => {
+    if (open && editSegmentId) {
+      try {
+        const raw = localStorage.getItem("savedSegments");
+        const segments: SavedSegment[] = raw ? JSON.parse(raw) : [];
+        const segment = segments.find((s) => s.id === editSegmentId);
+
+        if (segment) {
+          setIsEditMode(true);
+          setSegmentName(segment.name);
+          setSchemaRows(segment.schemas.map((value) => ({ value })));
+        } else {
+          // ID not found, reset to create mode
+          setIsEditMode(false);
+          setSegmentName("");
+          setSchemaRows([]);
+        }
+      } catch {
+        setIsEditMode(false);
+        setSegmentName("");
+        setSchemaRows([]);
+      }
+    } else if (open && !editSegmentId) {
+      // Create mode
+      setIsEditMode(false);
+      setSegmentName("");
+      setSchemaRows([]);
+    }
+  }, [open, editSegmentId]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -72,18 +120,34 @@ export default function SegmentModal() {
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error("Webhook request failed");
 
-      const newSegment = {
-        id: Date.now().toString(), // unique ID
-        name: segmentName.trim(),
-        schemas: schemaRows.map((r) => r.value),
-        timestamp: new Date().toISOString(),
-      };
-
-      const existingSegments = JSON.parse(
+      const existingSegments: SavedSegment[] = JSON.parse(
         localStorage.getItem("savedSegments") || "[]",
       );
 
-      const updatedSegments = [...existingSegments, newSegment];
+      let updatedSegments: SavedSegment[];
+
+      if (isEditMode && editSegmentId) {
+        // Update existing segment
+        updatedSegments = existingSegments.map((seg) =>
+          seg.id === editSegmentId
+            ? {
+                ...seg,
+                name: segmentName.trim(),
+                schemas: schemaRows.map((r) => r.value),
+                timestamp: new Date().toISOString(),
+              }
+            : seg,
+        );
+      } else {
+        // Create new segment
+        const newSegment: SavedSegment = {
+          id: Date.now().toString(),
+          name: segmentName.trim(),
+          schemas: schemaRows.map((r) => r.value),
+          timestamp: new Date().toISOString(),
+        };
+        updatedSegments = [...existingSegments, newSegment];
+      }
 
       localStorage.setItem("savedSegments", JSON.stringify(updatedSegments));
       // notify listeners that segments have been updated
@@ -92,7 +156,7 @@ export default function SegmentModal() {
       } catch {}
 
       setWebhookResponse(result.response?.slice(0, 200) || "Success");
-      setOpen(false);
+      onOpenChange(false);
       setSegmentName("");
       setSchemaRows([]);
       setShowSuccessModal(true);
@@ -110,7 +174,7 @@ export default function SegmentModal() {
     if (hasUnsaved) {
       setShowConfirmCloseModal(true);
     } else {
-      setOpen(false);
+      onOpenChange(false);
     }
   };
 
@@ -134,7 +198,7 @@ export default function SegmentModal() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger asChild>
           <Button variant="default">Save Segment</Button>
         </DialogTrigger>
@@ -151,7 +215,7 @@ export default function SegmentModal() {
           >
             <DialogHeader>
               <DialogTitle className="text-heading text-2xl font-bold">
-                Save Segment
+                {isEditMode ? "Edit Segment" : "Save Segment"}
               </DialogTitle>
             </DialogHeader>
 
@@ -235,7 +299,7 @@ export default function SegmentModal() {
           setSegmentName("");
           setSchemaRows([]);
           setShowConfirmCloseModal(false);
-          setOpen(false);
+          onOpenChange(false);
         }}
       />
     </>
