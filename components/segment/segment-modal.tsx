@@ -12,20 +12,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  TooltipContent,
 } from "@/components/ui/tooltip";
 import { SCHEMAS } from "./schema-config";
 import { cn, shadowDepthPrimary } from "@/lib/utils";
+
+import SchemaList from "./schema-list";
+import Legend from "./legend";
+import AddSchemaButton from "./add-schema-button";
+import StatusModal from "./status-modal";
 
 export default function SegmentModal() {
   const [open, setOpen] = useState(false);
@@ -47,69 +45,51 @@ export default function SegmentModal() {
     return () => clearTimeout(timer);
   }, [showSuccessModal, showErrorModal]);
 
-  const handleAddSchemaRow = () => {
-    setSchemaRows((prev) => [...prev, { value: "" }]);
-  };
-
-  const handleSchemaSelect = (index: number, value: string) => {
+  const handleAddSchemaRow = () => setSchemaRows((p) => [...p, { value: "" }]);
+  const handleSchemaSelect = (i: number, v: string) => {
     const updated = [...schemaRows];
-    updated[index].value = value;
+    updated[i].value = v;
     setSchemaRows(updated);
   };
-
-  const handleRemoveSchema = (index: number) => {
-    setSchemaRows((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleRemoveSchema = (i: number) =>
+    setSchemaRows((p) => p.filter((_, idx) => idx !== i));
 
   const handleSubmit = async () => {
-    const allSelected = schemaRows.every((row) => row.value);
+    const allSelected = schemaRows.every((r) => r.value);
     if (!segmentName.trim() || !allSelected || schemaRows.length === 0) return;
-
     try {
-      const response = await fetch("/api/save-segment", {
+      const res = await fetch("/api/save-segment", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           segmentName,
-          schemas: schemaRows.map((row) => row.value),
+          schemas: schemaRows.map((r) => r.value),
           timestamp: new Date().toISOString(),
         }),
       });
 
-      const result = await response.json();
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error("Webhook request failed");
 
-      if (!response.ok || !result.success) {
-        throw new Error("Webhook request failed");
-      }
-
-      setWebhookResponse(
-        result.response?.slice(0, 200) || "Success (no message returned)",
-      );
-
+      setWebhookResponse(result.response?.slice(0, 200) || "Success");
       setOpen(false);
       setSegmentName("");
       setSchemaRows([]);
       setShowSuccessModal(true);
-    } catch (error) {
-      console.error("Error posting to webhook:", error);
+    } catch (e) {
+      console.error(e);
       setWebhookResponse(null);
       setShowErrorModal(true);
     }
   };
 
   const handleCancel = () => {
-    const hasUnsavedData =
-      segmentName.trim() !== "" || schemaRows.some((row) => row.value !== "");
-    if (hasUnsavedData) {
-      setShowConfirmCloseModal(true);
-    } else {
-      setOpen(false);
-    }
+    const hasUnsaved =
+      segmentName.trim() !== "" || schemaRows.some((r) => r.value !== "");
+    hasUnsaved ? setShowConfirmCloseModal(true) : setOpen(false);
   };
 
-  const hasEmptyDropdown = schemaRows.some((row) => row.value === "");
+  const hasEmptyDropdown = schemaRows.some((r) => r.value === "");
   const isValid =
     segmentName.trim() !== "" && schemaRows.length > 0 && !hasEmptyDropdown;
 
@@ -120,9 +100,6 @@ export default function SegmentModal() {
       : hasEmptyDropdown
         ? "Please select a schema from the drop-down, or remove it"
         : "";
-
-  const selectedSchemas = schemaRows.filter((row) => row.value);
-  const unselectedSchemas = schemaRows.filter((row) => !row.value);
 
   const allSchemasSelected =
     schemaRows.length >= SCHEMAS.length ||
@@ -153,7 +130,6 @@ export default function SegmentModal() {
               </DialogTitle>
             </DialogHeader>
 
-            {/* Segment Name */}
             <div className="mt-4">
               <label className="text-text mb-1 block text-sm font-medium">
                 Enter the Name of the Segment
@@ -171,176 +147,21 @@ export default function SegmentModal() {
               query.
             </p>
 
-            {/* Legend */}
-            <div className="mt-3 flex justify-end gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-subheading">User Traits</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-pink-500" />
-                <span className="text-subheading">Group Traits</span>
-              </div>
-            </div>
+            <Legend />
+            <SchemaList
+              schemaRows={schemaRows}
+              handleSchemaSelect={handleSchemaSelect}
+              handleRemoveSchema={handleRemoveSchema}
+            />
+            <AddSchemaButton
+              onAdd={handleAddSchemaRow}
+              disabled={allSchemasSelected}
+            />
 
-            {/* Schema List */}
-            <div className="mt-4 flex flex-col gap-4">
-              {selectedSchemas.length > 0 && (
-                <div className="rounded-xl bg-blue-50/60 px-3 py-4 shadow-inner shadow-blue-100 backdrop-blur-md transition-all duration-300">
-                  <div className="flex flex-col gap-3">
-                    {selectedSchemas.map((row) => {
-                      const originalIndex = schemaRows.findIndex(
-                        (r) => r.value === row.value,
-                      );
-                      const selectedValues = schemaRows
-                        .map((r) => r.value)
-                        .filter(Boolean);
-                      const availableOptions = SCHEMAS.filter(
-                        (opt) =>
-                          !selectedValues.includes(opt.value) ||
-                          opt.value === row.value,
-                      );
-
-                      return (
-                        <div
-                          key={originalIndex}
-                          className="flex items-center gap-2 rounded-md p-1.5 transition-all duration-300"
-                        >
-                          <Select
-                            value={row.value}
-                            onValueChange={(value) =>
-                              handleSchemaSelect(originalIndex, value)
-                            }
-                          >
-                            <SelectTrigger className="flex-1 border-blue-400 bg-blue-100/40 focus:ring-blue-400">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableOptions.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className={cn(
-                                        "h-2 w-2 rounded-full",
-                                        opt.trait === "user" && "bg-green-500",
-                                        opt.trait === "group" && "bg-pink-500",
-                                      )}
-                                    />
-                                    {opt.label}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="ghost"
-                            onClick={() => handleRemoveSchema(originalIndex)}
-                            className="border border-red-500 py-1 text-lg text-red-500 hover:border-red-600 hover:text-red-600"
-                          >
-                            –
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {unselectedSchemas.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  {unselectedSchemas.map((row) => {
-                    const originalIndex = schemaRows.findIndex(
-                      (r) => r === row,
-                    );
-                    const selectedValues = schemaRows
-                      .map((r) => r.value)
-                      .filter(Boolean);
-                    const availableOptions = SCHEMAS.filter(
-                      (opt) =>
-                        !selectedValues.includes(opt.value) ||
-                        opt.value === row.value,
-                    );
-
-                    return (
-                      <div
-                        key={originalIndex}
-                        className="flex items-center gap-2 rounded-md p-1.5 transition-all duration-300"
-                      >
-                        <Select
-                          value={row.value}
-                          onValueChange={(value) =>
-                            handleSchemaSelect(originalIndex, value)
-                          }
-                        >
-                          <SelectTrigger className="flex-1 border-gray-300 bg-transparent">
-                            <SelectValue placeholder="Select a schema" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                <div className="flex items-center gap-2">
-                                  <span
-                                    className={cn(
-                                      "h-2 w-2 rounded-full",
-                                      opt.trait === "user" && "bg-green-500",
-                                      opt.trait === "group" && "bg-pink-500",
-                                    )}
-                                  />
-                                  {opt.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleRemoveSchema(originalIndex)}
-                          className="border border-red-500 py-1 text-lg text-red-500 hover:border-red-600 hover:text-red-600"
-                        >
-                          –
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Add New Schema Button */}
-            <div className="mt-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="inline-block">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={handleAddSchemaRow}
-                        disabled={allSchemasSelected}
-                        className={cn(
-                          "text-accent hover:text-accent-hover cursor-pointer text-sm font-medium",
-                          allSchemasSelected && "cursor-not-allowed opacity-60",
-                        )}
-                      >
-                        + Add new schema
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {allSchemasSelected && (
-                    <TooltipContent side="top">
-                      Maximum number of dropdowns reached.
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-
-            {/* Footer */}
             <div className="mt-8 flex justify-end gap-3">
               <Button variant="secondary" onClick={handleCancel}>
                 Cancel
               </Button>
-
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -367,120 +188,31 @@ export default function SegmentModal() {
         </DialogContent>
       </Dialog>
 
-      {/* Success Modal */}
-      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-sm rounded-2xl border-none bg-transparent p-0">
-          <GlassLayout
-            className={cn(
-              "rounded-2xl bg-white/70 text-center backdrop-blur-lg",
-              shadowDepthPrimary,
-            )}
-            contentClassName="p-6 sm:p-8"
-          >
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-green-600">
-                ✅ Segment Saved Successfully!
-              </DialogTitle>
-            </DialogHeader>
-            <p className="text-subheading mt-2 text-sm">
-              Your segment has been saved successfully. This window will close
-              automatically.
-            </p>
-
-            {webhookResponse && (
-              <div className="mt-3 rounded-md bg-gray-100 p-3 text-left text-xs text-gray-700">
-                <strong>Webhook Response:</strong>
-                <pre className="mt-1 break-words whitespace-pre-wrap">
-                  {webhookResponse}
-                </pre>
-              </div>
-            )}
-
-            <Button
-              variant="default"
-              className="mt-4"
-              onClick={() => setShowSuccessModal(false)}
-            >
-              Close
-            </Button>
-          </GlassLayout>
-        </DialogContent>
-      </Dialog>
-
-      {/* Error Modal */}
-      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
-        <DialogContent className="max-w-sm rounded-2xl border-none bg-transparent p-0">
-          <GlassLayout
-            className={cn(
-              "rounded-2xl bg-white/70 text-center backdrop-blur-lg",
-              shadowDepthPrimary,
-            )}
-            contentClassName="p-6 sm:p-8"
-          >
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-red-600">
-                ❌ Error Saving Segment
-              </DialogTitle>
-            </DialogHeader>
-            <p className="text-subheading mt-2 text-sm">
-              Something went wrong while saving your segment. Please try again.
-            </p>
-            <Button
-              variant="default"
-              className="mt-4"
-              onClick={() => setShowErrorModal(false)}
-            >
-              Close
-            </Button>
-          </GlassLayout>
-        </DialogContent>
-      </Dialog>
-
-      {/* Confirm Close Modal */}
-      <Dialog
+      <StatusModal
+        type="success"
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        message="Your segment has been saved successfully."
+        webhookResponse={webhookResponse}
+      />
+      <StatusModal
+        type="error"
+        open={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        message="Something went wrong while saving your segment. Please try again."
+      />
+      <StatusModal
+        type="confirm"
         open={showConfirmCloseModal}
-        onOpenChange={setShowConfirmCloseModal}
-      >
-        <DialogContent className="max-w-sm rounded-2xl border-none bg-transparent p-0">
-          <GlassLayout
-            className={cn(
-              "rounded-2xl bg-white/70 text-center backdrop-blur-lg",
-              shadowDepthPrimary,
-            )}
-            contentClassName="p-6 sm:p-8"
-          >
-            <DialogHeader>
-              <DialogTitle className="text-heading text-lg font-semibold">
-                Discard changes?
-              </DialogTitle>
-            </DialogHeader>
-            <p className="text-subheading mt-2 text-sm">
-              Closing this modal will clear your entered name and selected
-              schemas.
-            </p>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setShowConfirmCloseModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setSegmentName("");
-                  setSchemaRows([]);
-                  setShowConfirmCloseModal(false);
-                  setOpen(false);
-                }}
-              >
-                Discard
-              </Button>
-            </div>
-          </GlassLayout>
-        </DialogContent>
-      </Dialog>
+        onClose={() => setShowConfirmCloseModal(false)}
+        message="Closing this modal will clear your entered name and selected schemas."
+        onDiscard={() => {
+          setSegmentName("");
+          setSchemaRows([]);
+          setShowConfirmCloseModal(false);
+          setOpen(false);
+        }}
+      />
     </>
   );
 }
