@@ -1,5 +1,5 @@
 export const pageConfig = {
-  title: "Page Title",
+  title: "Segment Builder Dashboard",
   description:
-    "Consequat esse labore dolore voluptate duis magna voluptate labore sint esse.Exercitation commodo consequat deserunt ex aute Lorem voluptate.",
+    "An interactive demo showcasing a dynamic segment builder with schema-based dropdowns, glassmorphic UI, and local storage persistence — designed for analytics-style dashboards using Next.js, TypeScript, and Tailwind CSS.",
 };

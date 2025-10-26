@@ -24,6 +24,7 @@ import SchemaList from "./schema-list";
 import Legend from "./legend";
 import AddSchemaButton from "./add-schema-button";
 import StatusModal from "./status-modal";
+import { Loader } from "@/components/ui/loader";
 
 type SavedSegment = {
   id: string;
@@ -46,6 +47,8 @@ export default function SegmentModal({
   const [segmentName, setSegmentName] = useState("");
   const [schemaRows, setSchemaRows] = useState<{ value: string }[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showConfirmCloseModal, setShowConfirmCloseModal] = useState(false);
@@ -54,6 +57,7 @@ export default function SegmentModal({
   // Load segment data when editing
   useEffect(() => {
     if (open && editSegmentId) {
+      setIsLoading(true);
       try {
         const raw = localStorage.getItem("savedSegments");
         const segments: SavedSegment[] = raw ? JSON.parse(raw) : [];
@@ -73,12 +77,15 @@ export default function SegmentModal({
         setIsEditMode(false);
         setSegmentName("");
         setSchemaRows([]);
+      } finally {
+        setIsLoading(false);
       }
     } else if (open && !editSegmentId) {
       // Create mode
       setIsEditMode(false);
       setSegmentName("");
       setSchemaRows([]);
+      setIsLoading(false);
     }
   }, [open, editSegmentId]);
 
@@ -106,6 +113,7 @@ export default function SegmentModal({
     const allSelected = schemaRows.every((r) => r.value);
     if (!segmentName.trim() || !allSelected || schemaRows.length === 0) return;
 
+    setIsSaving(true);
     try {
       const res = await fetch("/api/save-segment", {
         method: "POST",
@@ -164,6 +172,8 @@ export default function SegmentModal({
       console.error(e);
       setWebhookResponse(null);
       setShowErrorModal(true);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -219,60 +229,75 @@ export default function SegmentModal({
               </DialogTitle>
             </DialogHeader>
 
-            <div className="mt-4">
-              <label className="text-text mb-1 block text-sm font-medium">
-                Enter the Name of the Segment
-              </label>
-              <Input
-                placeholder="Name of the segment"
-                value={segmentName}
-                onChange={(e) => setSegmentName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
+            {isLoading ? (
+              <div className="flex min-h-[300px] items-center justify-center">
+                <Loader size="lg" className="text-blue-600" />
+              </div>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <label className="text-text mb-1 block text-sm font-medium">
+                    Enter the Name of the Segment
+                  </label>
+                  <Input
+                    placeholder="Name of the segment"
+                    value={segmentName}
+                    onChange={(e) => setSegmentName(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
 
-            <p className="text-accent-secondary mt-4 text-sm">
-              To save your segment, you need to add the schemas to build the
-              query.
-            </p>
+                <p className="text-accent-secondary mt-4 text-sm">
+                  To save your segment, you need to add the schemas to build the
+                  query.
+                </p>
 
-            <Legend />
-            <SchemaList
-              schemaRows={schemaRows}
-              handleSchemaSelect={handleSchemaSelect}
-              handleRemoveSchema={handleRemoveSchema}
-            />
-            <AddSchemaButton
-              onAdd={handleAddSchemaRow}
-              disabled={allSchemasSelected}
-            />
+                <Legend />
+                <SchemaList
+                  schemaRows={schemaRows}
+                  handleSchemaSelect={handleSchemaSelect}
+                  handleRemoveSchema={handleRemoveSchema}
+                />
+                <AddSchemaButton
+                  onAdd={handleAddSchemaRow}
+                  disabled={allSchemasSelected}
+                />
 
-            <div className="mt-8 flex justify-end gap-3">
-              <Button variant="secondary" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="inline-block">
-                      <Button
-                        variant="default"
-                        onClick={handleSubmit}
-                        disabled={!isValid}
-                        className={cn(
-                          !isValid && "cursor-not-allowed opacity-60",
-                        )}
-                      >
-                        Save the Segment
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {!isValid && tooltipText && (
-                    <TooltipContent side="top">{tooltipText}</TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+                <div className="mt-8 flex justify-end gap-3">
+                  <Button variant="secondary" onClick={handleCancel} disabled={isSaving}>
+                    Cancel
+                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="inline-block">
+                          <Button
+                            variant="default"
+                            onClick={handleSubmit}
+                            disabled={!isValid || isSaving}
+                            className={cn(
+                              (!isValid || isSaving) && "cursor-not-allowed opacity-60",
+                            )}
+                          >
+                            {isSaving ? (
+                              <>
+                                <Loader size="sm" className="mr-2" />
+                                Saving...
+                              </>
+                            ) : (
+                              "Save the Segment"
+                            )}
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      {!isValid && !isSaving && tooltipText && (
+                        <TooltipContent side="top">{tooltipText}</TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </>
+            )}
           </GlassLayout>
         </DialogContent>
       </Dialog>

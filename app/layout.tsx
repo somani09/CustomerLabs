@@ -10,22 +10,40 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Vaibhav Somani | Project Template",
-  description: "This is a template",
-
+  title: "Vaibhav Somani | Segment Builder Dashboard",
+  description:
+    "A modern Next.js + TypeScript demo project by Vaibhav Somani featuring an interactive Segment Builder with schema management, local storage, and elegant glassmorphic UI styling.",
   keywords: [
     "Vaibhav Somani",
-    "Vaibhav Somani Portfolio",
     "Vaibhav Somani Projects",
-    "React Portfolio",
-    "Frontend Developer Projects",
-    "Full Stack Developer Showcase",
-    "Next.js Projects",
-    "Tailwind CSS UI",
-    "TypeScript Components",
+    "Segment Builder",
+    "Next.js Dashboard",
+    "Frontend Developer Portfolio",
+    "React UI Components",
+    "Tailwind CSS Design",
+    "TypeScript Frontend",
+    "Glassmorphism UI",
+    "Local Storage Demo",
   ],
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Segment Builder Dashboard | Vaibhav Somani",
+    description:
+      "Explore a glassmorphic, schema-driven segment builder built with Next.js, TypeScript, and Tailwind CSS.",
+    url: "https://customer-labs-test.vercel.app/",
+    siteName: "Vaibhav Somani Projects",
+    images: [
+      {
+        url: "/segment_builder.jpeg", // optional OG image
+        width: 1200,
+        height: 630,
+        alt: "Segment Builder Dashboard Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
   },
 };
 
